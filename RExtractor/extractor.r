@@ -1,8 +1,8 @@
+#install.packages("rjson", repos="http://cran.rstudio.com/")
+#install.packages("jsonlite", dependencies=TRUE, repos="http://cran.rstudio.com/")
 library(ggplot)
 library(plyr)
 library(dplyr)
-install.packages("rjson", repos="http://cran.rstudio.com/")
-install.packages("jsonlite", dependencies=TRUE, repos="http://cran.rstudio.com/")
 library(rjson)
 library(jsonlite)
 
@@ -17,8 +17,9 @@ JCtripHistory = read.csv("./tripdata/JC-201901-citibike-tripdata.csv", sep=",")
 #sideTableMaker = function(x) {
 #  return (head(data.frame(name = x$start.station.name,latitude = x$start.station.latitude,longitude = x$start.station.longitude),1))
 #}
-#  
 #StationTable = ddply(JCtripHistory, .(start.station.id), sideTableMaker)
+df = read.csv("./station_data/station_data.csv")
+StationTable = data.frame(id = df$stationBeanList__id, name = df$stationBeanList__stationName, capacity = df$stationBeanList__totalDocks, latitude = df$stationBeanList__latitude, longitude = df$stationBeanList__longitude)
 
 
 drop_vec <- c("start.station.name","start.station.latitude","start.station.longitude","end.station.name","end.station.latitude","end.station.longitude")
