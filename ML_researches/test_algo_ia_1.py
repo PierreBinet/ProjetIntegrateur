@@ -4,12 +4,13 @@ Created on Wed Nov 27 14:58:34 2019
 
 @author: Lucile
 
-state : not training anything yet. value error cause of incomplete data (NaN).
+state : training ok.
 """
 
 
 
 from sklearn.cluster import DBSCAN
+from sklearn import svm
 from sklearn import metrics
 from datetime import datetime
 import pandas as pd
@@ -17,7 +18,7 @@ import numpy as np
 
 #extraction from csv
 
-df=pd.read_csv('data/201306-citibike-tripdata.csv', sep=',',header=0)
+df=pd.read_csv('../../../data/201306-citibike-tripdata.csv', sep=',',header=0)
 
 
 
@@ -50,7 +51,7 @@ for row in range (0, len(df)) :
     
 
 #STOP  
-#nb : ce serait pas intéressant de virer les colonnes year et month et day vu que c'est forcément les mêmes que start ?
+
 for row in range (0, len(df)) :
     df.at[row, 'stop_year'] = df.at[row,'stoptime'].year
     
@@ -83,6 +84,9 @@ for row in range (0, len(df)) :
 #delete datetime columns et nom de stations (String relous)
 df= df.drop(columns=['starttime', 'stoptime', 'start station name', 'end station name', 'usertype'])
 
+#delete incomplete data
+df= df.dropna()
+
 #dataset %70 train 30%test
 
 msk = np.random.rand(len(df)) < 0.7
@@ -93,9 +97,11 @@ test = df[~msk]
 train.shape
 test.shape
 
-# test regression on bike id
-# test clustering to get gender/age/customer or not ??
+#test algo
+clf = svm.SVR()
+clf.fit(train)
+clf.predict()
 
-db = DBSCAN(eps=0.3, min_samples=10).fit(train)
+
 
 print('\007') #bell sound pour savoir que c'est fini !!
