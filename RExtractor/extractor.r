@@ -6,10 +6,42 @@ library(dplyr)
 library(rjson)
 library(jsonlite)
 
+df = read.csv("./station_data/station_data.csv")
+StationTable = data.frame(id = df$stationBeanList__id, name = df$stationBeanList__stationName, capacity = df$stationBeanList__totalDocks, latitude = df$stationBeanList__latitude, longitude = df$stationBeanList__longitude)
+write.csv(StationTable,'./output/stationTable.csv', row.names = FALSE)
 
 ridershipAndMembership = read.csv("./ridershipdata/2019Q1.csv", sep=",")
 #tripHistory = read.csv("./tripdata/201901-citibike-tripdata.csv", sep=",")
-JCtripHistory = read.csv("./tripdata/JC-201901-citibike-tripdata.csv", sep=",")
+
+#list all files in tripdata
+mydir = "./tripdata"
+myfiles = list.files(path=mydir, pattern="*.csv", full.names=TRUE)
+
+for (i in 1:length(myfiles)){
+ 
+  JCtripHistory = read.csv(myfiles[i], sep=",")
+  
+  start_date<- as.POSIXlt(JCtripHistory$starttime)
+  end_date <- as.POSIXlt(JCtripHistory$stoptime)
+  JCtripHistory$start_day= start_date$mday
+  JCtripHistory$start_month = start_date$mon + 1
+  JCtripHistory$start_year = start_date$year + 1900
+  JCtripHistory$start_hour = start_date$hour
+  JCtripHistory$start_minute = start_date$min
+  JCtripHistory$start_second = start_date$sec
+  
+  JCtripHistory$end_day= end_date$mday
+  JCtripHistory$end_month = end_date$mon + 1
+  JCtripHistory$end_year = end_date$year + 1900
+  JCtripHistory$end_hour = end_date$hour
+  JCtripHistory$end_minute = end_date$min
+  JCtripHistory$end_second = end_date$sec
+  
+  drop_vec <- c("start.station.name","start.station.latitude","start.station.longitude","end.station.name","end.station.latitude","end.station.longitude","starttime","stoptime")
+  JCtripHistory <- JCtripHistory [, ! names(JCtripHistory) %in% drop_vec, drop = TRUE]
+  
+  filename = strsplit(myfiles[i],"/")[[1]][3]
+  write.csv(JCtripHistory,paste('./output',filename,sep="/"), row.names = FALSE)}
 
 
 #old code that was supposed to fetch station information using what was in the original dataset
@@ -18,12 +50,6 @@ JCtripHistory = read.csv("./tripdata/JC-201901-citibike-tripdata.csv", sep=",")
 #  return (head(data.frame(name = x$start.station.name,latitude = x$start.station.latitude,longitude = x$start.station.longitude),1))
 #}
 #StationTable = ddply(JCtripHistory, .(start.station.id), sideTableMaker)
-df = read.csv("./station_data/station_data.csv")
-StationTable = data.frame(id = df$stationBeanList__id, name = df$stationBeanList__stationName, capacity = df$stationBeanList__totalDocks, latitude = df$stationBeanList__latitude, longitude = df$stationBeanList__longitude)
-
-
-drop_vec <- c("start.station.name","start.station.latitude","start.station.longitude","end.station.name","end.station.latitude","end.station.longitude")
-JCtripHistory <- JCtripHistory [, ! names(JCtripHistory) %in% drop_vec, drop = TRUE]
 
 
 #if needed, code to export in JSON
