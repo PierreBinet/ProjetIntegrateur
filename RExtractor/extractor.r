@@ -1,6 +1,5 @@
 #install.packages("rjson", repos="http://cran.rstudio.com/")
 #install.packages("jsonlite", dependencies=TRUE, repos="http://cran.rstudio.com/")
-library(ggplot)
 library(plyr)
 library(dplyr)
 library(rjson)
@@ -39,6 +38,10 @@ for (i in 1:length(myfiles)){
   
   drop_vec <- c("start.station.name","start.station.latitude","start.station.longitude","end.station.name","end.station.latitude","end.station.longitude","starttime","stoptime")
   JCtripHistory <- JCtripHistory [, ! names(JCtripHistory) %in% drop_vec, drop = TRUE]
+  
+  names(JCtripHistory)[names(JCtripHistory) == "start.station.id"] <- "start_station_id"
+  names(JCtripHistory)[names(JCtripHistory) == "end.station.id"] <- "end_station_id"
+
   
   filename = strsplit(myfiles[i],"/")[[1]][3]
   write.csv(JCtripHistory,paste('./output',filename,sep="/"), row.names = FALSE)}

@@ -1,4 +1,4 @@
-"tripduration","start.station.id","end.station.id","bikeid","usertype","birth.year","gender","start_day","start_month","start_year","start_hour","start_minute","start_second","end_day","end_month","end_year","end_hour","end_minute","end_second"
+"tripduration","start_station_id","end_station_id","bikeid","usertype","birth.year","gender","start_day","start_month","start_year","start_hour","start_minute","start_second","end_day","end_month","end_year","end_hour","end_minute","end_second"
 201,3183,3214,29612,"Subscriber",1993,1,1,1,2019,3,9,9.711,1,1,2019,3,12,30.879
 505,3183,3638,29213,"Subscriber",1972,2,1,1,2019,5,18,0.106,1,1,2019,5,26,25.905
 756,3183,3192,26164,"Subscriber",1985,1,1,1,2019,10,36,33.34,1,1,2019,10,49,10.26
