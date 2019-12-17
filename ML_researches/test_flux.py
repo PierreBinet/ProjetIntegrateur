@@ -11,11 +11,8 @@ import pandas as pd
 import numpy as np
 
 # On charge les dataset
-trips_one_month = pd.read_csv('..\RExtractor\output\JC-201901-citibike-tripdata.csv')
-trips_two_month = pd.read_csv('..\RExtractor\output\JC-201902-citibike-tripdata.csv')
-stations = pd.read_csv('..\.\RExtractor\output\stationTable.csv')
-ride = pd.read_csv('..\.\RExtractor\output\Test.csv')
-
+trips_one_month = pd.read_csv('../RExtractor/output/JC-201901-citibike-tripdata.csv')
+trips_two_month = pd.read_csv('../RExtractor/output/JC-201902-citibike-tripdata.csv')
 
 # Conversion d'un string en datetime
 def convertStringToDatetime(hour, minute, second):
