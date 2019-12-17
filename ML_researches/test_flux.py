@@ -69,16 +69,33 @@ def getDateData(dataset, mode="timestamp") :
             data_diff.append(delta)
     return data_s, data_e, data_diff
 
+# Retourne les datasets où le départ ou l'arrivée est à une station donnée
+def getDatasetById(dataset, id_station):
+    dataset_station_s = dataset[dataset.start_station_id == id_station]
+    dataset_station_e = dataset[dataset.end_station_id == id_station]
+    return dataset_station_s, dataset_station_e
 
-# Retourne une liste contenant le nombre de vélos par 30 min
-def bike_per_hour(data):
+# Retourne les datasets où le départ ou l'arrivée est au nb ième jour de la semaine
+def getDataOneDay(dataset_station_s, dataset_station_e, nb):
+    dataset_station_s_one_day = dataset_station_s[dataset_station_s.start_day%7 == nb]
+    dataset_station_s_one_day.reset_index(drop=True)
+    dataset_station_e_one_day = dataset_station_e[dataset_station_e.end_day%7 == nb]
+    dataset_station_e_one_day.reset_index(drop=True)
+    return dataset_station_s_one_day, dataset_station_e_one_day
+
+
+# Argument : une liste contenant le nombre de vélo par date YYYY-MM-DD-HH:MM:SS
+# Retourne une liste contenant le nombre de vélos par intervalle 30 min
+def bike_per_hour(data_s, data_e):
+    d = data_s + data_e
+    d.sort(key=lambda tup: tup[0]) # On trie par heure
     bike_per_hours_list = []
     for hours in range(0,24):
         hour_first_half = 0
         hour_second_half = 0
         count_first_half = 0
         count_second_half = 0
-        for date in data:
+        for date in d:
             if(hours == date[0].hour):
                 if(date[0].minute <= 30):
                     count_first_half += 1
@@ -96,6 +113,11 @@ def bike_per_hour(data):
             bike_per_hours_list.append(hour_second_half/count_second_half)
             
     return bike_per_hours_list
+
+# On associe le nombre de vélo pour une liste d'arrivée ou de départ
+def associerNbVelos(data, mode):
+    l1 = [mode]*len(data)
+    return list(zip(data,l1))
 
 
 # Fonction de prédiction
@@ -134,61 +156,47 @@ plt.plot(predictions, color='red')
 plt.show()
 
 
-# Prédiction du flux moyen sur une journée pour une station donnée
 
+# Prédiction du flux moyen sur une journée pour une station donnée
 # Liste d'intervalles de 30 min sur une journée
 dts30 = [dt.strftime('%H:%M:%S.%f') for dt in 
        datetime_range(datetime(2019,1, 1, 0), datetime(2019,1,1, 23, 59), 
        timedelta(minutes=30))]
 
-dataset_station_s = trips_one_month[trips_one_month.start_station_id == 3183]
+# On récupère les dataset pour la station 3183
+dataset_station_s, dataset_station_e = getDatasetById(trips_one_month, 3183)
 
-dataset_station_e = trips_one_month[trips_one_month.end_station_id == 3183]
+# On récupère le dataset pour un jour donnée
+dataset_station_s_one_day, dataset_station_e_one_day = getDataOneDay(dataset_station_s, dataset_station_e, 1)
+dataset_station_s_second_day, dataset_station_e_second_day = getDataOneDay(dataset_station_s, dataset_station_e, 2)
 
-dataset_station_s_one_day = dataset_station_s[trips_one_month.start_day%7 == 2]
-dataset_station_s_one_day.reset_index(drop=True)
-dataset_station_e_one_day = dataset_station_e[trips_one_month.start_day%7 == 2]
-dataset_station_e_one_day.reset_index(drop=True)
-
-dataset_station_s_second_day = dataset_station_s[trips_one_month.start_day%7 == 1]
-dataset_station_s_second_day.reset_index(drop=True)
-dataset_station_e_second_day = dataset_station_e[trips_one_month.start_day%7 == 1]
-dataset_station_e_second_day.reset_index(drop=True) 
-
+# On récupère les dates
+# Départ station 3183
 data_s,_, _ = getDateData(dataset_station_s_one_day, "notimestamp")
+# Arrivée station 3183
 _ ,data_e, _ = getDateData(dataset_station_e_one_day, "notimestamp")
 
 data_s2,_, _ = getDateData(dataset_station_s_second_day, "notimestamp")
-_ ,data_e2, _ = getDateData(dataset_station_e_second_day, "notimestamp")
+_,data_e2, _ = getDateData(dataset_station_e_second_day, "notimestamp")
 
-l1 = [-1]*len(data_s)
-l2 = [1]*len(data_e)
+# On associe le dataset par l'arrivée de vélo +1 ou le départ de vélo -1
+data_s = associerNbVelos(data_s, -1)
+data_e = associerNbVelos(data_e, 1)
+data_s2 = associerNbVelos(data_s2, -1)
+data_e2 = associerNbVelos(data_e2, 1)
 
-l3 = [-1]*len(data_s2)
-l4 = [1]*len(data_e2)
-
-data_s = list(zip(data_s,l1))
-data_e = list(zip(data_e,l2))
-d = data_s + data_e
-d.sort(key=lambda tup: tup[0])
-
-data_s2 = list(zip(data_s2,l3))
-data_e2 = list(zip(data_e2,l4))
-d2 = data_s2 + data_e2
-d2.sort(key=lambda tup: tup[0])
-
-data_diff = bike_per_hour(d)
-data_diff2 = bike_per_hour(d2)
+data_diff = bike_per_hour(data_s, data_e)
+data_diff2 = bike_per_hour(data_s2, data_e2)
 
 
-
+# Autoregression pour prédire le flux d'une journée
 train, test = data_diff, data_diff2
-# train autoregression
+# Train autoregression
 model = AR(train)
 model_fit = model.fit(maxlag=6, disp=False)
 window = model_fit.k_ar
 coef = model_fit.params
-# walk forward over time steps in test
+# Walk forward over time steps in test
 history = [train[i] for i in range(len(train))]
 predictions = list()
 for t in range(len(test)):
@@ -199,6 +207,7 @@ for t in range(len(test)):
 error = mean_squared_error(test, predictions)
 print('Test MSE: %.3f' % error)
 
+# Affichage de la journée et de la prédiciton
 dates = np.arange(0,24,0.5)
 xfmt = md.DateFormatter('%H:%M:%S')
 plt.rcParams['figure.figsize'] = [10, 5]
