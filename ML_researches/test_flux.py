@@ -149,9 +149,9 @@ error = mean_squared_error(test, predictions)
 print('Test MSE: %.3f' % error)
 
 # Plot
-plt.plot(test)
+'''plt.plot(test)
 plt.plot(predictions, color='red')
-plt.show()
+plt.show()'''
 
 
 
@@ -208,8 +208,8 @@ print('Test MSE: %.3f' % error)
 # Affichage de la journée et de la prédiciton
 dates = np.arange(0,24,0.5)
 xfmt = md.DateFormatter('%H:%M:%S')
-plt.rcParams['figure.figsize'] = [10, 5]
+'''plt.rcParams['figure.figsize'] = [10, 5]
 plt.xticks(rotation= 90, )
 plt.plot(dts30, test)
 plt.plot(dts30, predictions, color='red')
-plt.show()
+plt.show()'''
