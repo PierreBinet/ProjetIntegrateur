@@ -9,7 +9,7 @@ df = read.csv("./station_data/station_data.csv")
 StationTable = data.frame(id = df$stationBeanList__id, name = df$stationBeanList__stationName, capacity = df$stationBeanList__totalDocks, latitude = df$stationBeanList__latitude, longitude = df$stationBeanList__longitude)
 write.csv(StationTable,'./output/stationTable.csv', row.names = FALSE)
 
-ridershipAndMembership = read.csv("./ridershipdata/2019Q1.csv", sep=",")
+#ridershipAndMembership = read.csv("./ridershipdata/2019Q1.csv", sep=",")
 #tripHistory = read.csv("./tripdata/201901-citibike-tripdata.csv", sep=",")
 
 #list all files in tripdata

@@ -18,7 +18,7 @@ import numpy as np
 
 #extraction from csv
 
-df=pd.read_csv('../../../data/201306-citibike-tripdata.csv', sep=',',header=0)
+df=pd.read_csv('../RExtractor/output/JC-201901-citibike-tripdata.csv', sep=',',header=0)
 
 
 
