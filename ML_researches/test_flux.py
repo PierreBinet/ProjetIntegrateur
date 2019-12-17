@@ -11,7 +11,8 @@ import pandas as pd
 import numpy as np
 
 # On charge les dataset
-trips_one_month = pd.read_csv('..\.\RExtractor\output\JC-201901-citibike-tripdata.csv')
+trips_one_month = pd.read_csv('..\RExtractor\output\JC-201901-citibike-tripdata.csv')
+trips_two_month = pd.read_csv('..\RExtractor\output\JC-201902-citibike-tripdata.csv')
 stations = pd.read_csv('..\.\RExtractor\output\stationTable.csv')
 ride = pd.read_csv('..\.\RExtractor\output\Test.csv')
 
@@ -164,11 +165,11 @@ dts30 = [dt.strftime('%H:%M:%S.%f') for dt in
        timedelta(minutes=30))]
 
 # On récupère les dataset pour la station 3183
-dataset_station_s, dataset_station_e = getDatasetById(trips_one_month, 3183)
-
+dataset_station_s1, dataset_station_e1 = getDatasetById(trips_one_month, 3183)
+dataset_station_s2, dataset_station_e2 = getDatasetById(trips_two_month, 3183)
 # On récupère le dataset pour un jour donnée
-dataset_station_s_one_day, dataset_station_e_one_day = getDataOneDay(dataset_station_s, dataset_station_e, 1)
-dataset_station_s_second_day, dataset_station_e_second_day = getDataOneDay(dataset_station_s, dataset_station_e, 2)
+dataset_station_s_one_day, dataset_station_e_one_day = getDataOneDay(dataset_station_s1, dataset_station_e1, 1)
+dataset_station_s_second_day, dataset_station_e_second_day = getDataOneDay(dataset_station_s2, dataset_station_e2, 1)
 
 # On récupère les dates
 # Départ station 3183
