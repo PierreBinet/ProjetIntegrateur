@@ -23,6 +23,7 @@ for (i in 1:length(myfiles)){
   start_date<- as.POSIXlt(JCtripHistory$starttime)
   end_date <- as.POSIXlt(JCtripHistory$stoptime)
   JCtripHistory$start_day= start_date$mday
+  JCtripHistory$start_wday= weekdays(as.Date(start_date))
   JCtripHistory$start_month = start_date$mon + 1
   JCtripHistory$start_year = start_date$year + 1900
   JCtripHistory$start_hour = start_date$hour
@@ -30,11 +31,14 @@ for (i in 1:length(myfiles)){
   JCtripHistory$start_second = start_date$sec
   
   JCtripHistory$end_day= end_date$mday
+  JCtripHistory$end_wday= weekdays(as.Date(end_date))
   JCtripHistory$end_month = end_date$mon + 1
   JCtripHistory$end_year = end_date$year + 1900
   JCtripHistory$end_hour = end_date$hour
   JCtripHistory$end_minute = end_date$min
   JCtripHistory$end_second = end_date$sec
+  
+  JCtripHistory <- JCtripHistory %>% mutate(usertype = ifelse(usertype == "Subscriber",0,1))
   
   drop_vec <- c("start.station.name","start.station.latitude","start.station.longitude","end.station.name","end.station.latitude","end.station.longitude","starttime","stoptime")
   JCtripHistory <- JCtripHistory [, ! names(JCtripHistory) %in% drop_vec, drop = TRUE]
@@ -42,7 +46,6 @@ for (i in 1:length(myfiles)){
   names(JCtripHistory)[names(JCtripHistory) == "start.station.id"] <- "start_station_id"
   names(JCtripHistory)[names(JCtripHistory) == "end.station.id"] <- "end_station_id"
 
-  
   filename = strsplit(myfiles[i],"/")[[1]][3]
   write.csv(JCtripHistory,paste('./output',filename,sep="/"), row.names = FALSE)}
 
