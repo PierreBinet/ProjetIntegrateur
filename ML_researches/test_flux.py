@@ -14,6 +14,7 @@ import numpy as np
 trips_one_month = pd.read_csv('../RExtractor/output/JC-201901-citibike-tripdata.csv')
 trips_two_month = pd.read_csv('../RExtractor/output/JC-201902-citibike-tripdata.csv')
 
+
 # Conversion d'un string en datetime
 def convertStringToDatetime(hour, minute, second):
     date_time_str = str(hour)+':'+str(minute)+':'+str(round(second,3))
