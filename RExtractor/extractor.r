@@ -23,7 +23,7 @@ for (i in 1:length(myfiles)){
   start_date<- as.POSIXlt(JCtripHistory$starttime)
   end_date <- as.POSIXlt(JCtripHistory$stoptime)
   JCtripHistory$start_day= start_date$mday
-  JCtripHistory$start_wday= weekdays(as.Date(start_date))
+  JCtripHistory$start_wday= as.POSIXlt(as.Date(start_date))$wday
   JCtripHistory$start_month = start_date$mon + 1
   JCtripHistory$start_year = start_date$year + 1900
   JCtripHistory$start_hour = start_date$hour
