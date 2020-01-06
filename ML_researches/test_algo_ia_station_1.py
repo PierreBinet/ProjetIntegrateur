@@ -7,30 +7,32 @@ Created on Wed Nov 27 14:58:34 2019
 state : training ok.
 """
 
-
-
+# imports
 from sklearn.cluster import DBSCAN
 from sklearn import svm
 from sklearn import metrics
 from datetime import datetime
+from matplotlib import pyplot as plt
+from matplotlib import dates as md
 import pandas as pd
 import numpy as np
 
-#extraction from csv
+# extraction from csv
+df = pd.read_csv('../RExtractor/output/JC-201901-citibike-tripdata.csv', sep=',', header=0)
 
-df=pd.read_csv('../RExtractor/output/JC-201901-citibike-tripdata.csv', sep=',',header=0)
+# df.shape  # dimensions du tableau de données 577703x15
+
+""" ancienne méthode d'extraction lorsque la BDD n'avait pas de colonnes séparées pour année/mois/jour/heure/min
+df['starttime'] = pd.to_datetime(df['starttime'])  # type datetime
+df['stoptime']=pd.to_datetime(df['stoptime'])  # type datetime
 
 
-
-df.shape #dimensions du tableau de données 577703x15
-df['starttime']=pd.to_datetime(df['starttime'])#type datetime
-df['stoptime']=pd.to_datetime(df['stoptime'])#type datetime
 
 df.at[0, 'stoptime'].year #affiche la donnée 'stoptime' de la donnée d'indice 0
 
 
 # creates columns for year, month, day ...
-#START
+# START
 for row in range (0, len(df)) :
     df.at[row, 'start_year'] = df.at[row,'starttime'].year
     
@@ -69,39 +71,59 @@ for row in range (0, len(df)) :
     
 for row in range (0, len(df)) :
     df.at[row, 'stop_second'] = df.at[row,'stoptime'].second
+"""
 
 
-
-#Convertir la colonne usertype en subscribing avec 1=oui et 0=non ?
-
-for row in range (0, len(df)) :
-    if df.at[row, 'usertype'] == "Subscriber" :
-        df.at[row, 'subscriber'] = 1
-    else :
-        df.at[row, 'subscriber'] = 0
-    
-
-#delete datetime columns et nom de stations (String relous)
-df= df.drop(columns=['starttime', 'stoptime', 'start station name', 'end station name', 'usertype'])
-
-#delete incomplete data
-df= df.dropna()
-
-#dataset %70 train 30%test
-
-msk = np.random.rand(len(df)) < 0.7
-train = df[msk]
-test = df[~msk]
+# Convertit la colonne usertype en subscribing avec 1=oui et 0=non
+#ça serait cool de le faire dans le prétraitement
+def convert_usertype_to_boolean(data_array):
+    for row in range(0, len(data_array)):
+        if data_array.at[row, 'usertype'] == "Subscriber":
+            data_array.at[row, 'usertype'] = 1
+        else:
+            data_array.at[row, 'usertype'] = 0
+    return data_array
 
 
-train.shape
-test.shape
+# Retourne les datasets où le départ ou l'arrivée est à une station donnée
+def find_by_start_station_id(dataset, id_start_station):
+    dataset_station_s = dataset[dataset.start_station_id == id_start_station]
+    return dataset_station_s
 
-#test algo
+#def add_weekday(dataset):
+#    dataset[1]
+
+
+# delete incomplete data
+df = df.dropna()
+df = convert_usertype_to_boolean(df)
+df_station = find_by_start_station_id(df, 3183)
+# print(df_station)
+# print(df_station[['start_year', 'start_month', 'start_day', 'start_hour', 'start_minute', 'start_second']])
+
+
+# dataset %70 train 30%test
+msk = np.random.rand(len(df_station)) < 0.7
+train_fold = df_station[msk][['start_year', 'start_month', 'start_day', 'start_hour']]
+train_y = df_station[msk][['usertype']]
+test = df_station[~msk][['start_year', 'start_month', 'start_day', 'start_hour']]
+
+
+# train.shape
+# test.shape
+
+# test algo
 clf = svm.SVR()
-clf.fit(train)
-clf.predict()
+clf.fit(train_fold, train_y.values.ravel())
+res = clf.predict(test)
+
+# print('\007')  # bell sound pour savoir que c'est fini !!
 
 
-
-print('\007') #bell sound pour savoir que c'est fini !!
+#dates = np.arange(0,24,0.5)
+#xfmt = md.DateFormatter('%H:%M:%S')
+plt.rcParams['figure.figsize'] = [10, 5]
+plt.xticks(rotation= 90, )
+plt.plot(train_y)
+plt.plot(res, color='red')
+plt.show()
