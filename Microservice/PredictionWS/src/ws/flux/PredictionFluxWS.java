@@ -1,4 +1,4 @@
-package fr.insa.soa;
+package ws.flux;
 
 import java.awt.image.BufferedImage;
 import java.io.BufferedReader;
@@ -83,5 +83,11 @@ public class PredictionFluxWS {
 			return null;
 		}
 		
+	}
+	
+	@GET
+	@Produces(MediaType.TEXT_PLAIN)
+	public String getInt(){
+		return "200";
 	}
 }
