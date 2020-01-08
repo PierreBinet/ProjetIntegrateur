@@ -8,6 +8,7 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.math.BigInteger;
+import java.nio.file.Paths;
 
 import javax.imageio.ImageIO;
 import javax.ws.rs.GET;
@@ -28,32 +29,31 @@ public class PredictionFluxWS {
 		    @QueryParam(value = "station_id") final int station_id, 
 		    @QueryParam("data") File data,
 		    @QueryParam("station") File station){
-		BufferedImage image = null;
-		String s = null;
+		String str = null;
 		try {
 			//Process p = Runtime.getRuntime().exec("python3 ../../../../../../ML_researches/test_flux.py day station_id data station");
 			Process p = Runtime.getRuntime().exec("python3 /home/constance/Documents/5A/Projet_Integrateur/ProjetIntegrateur/ML_researches/test_flux.py "+day+" "+station_id+" "+data+" "+station);
-			
-			
+		
 			BufferedReader stdInput = new BufferedReader(new InputStreamReader(p.getInputStream()));
 			//BufferedReader stdError = new BufferedReader(new InputStreamReader(p.getErrorStream()));
 			
-	        s = stdInput.readLine();
-	        System.out.println(s);
-	       
-	            
+			//retrieve the hexa string returned by the python program
+	        str = stdInput.readLine();
 	        // read any errors from the attempted command
 	        //while ((s = stdError.readLine()) != null) {
 	           //System.out.println(s);
 	        //}
-			
-		    image = ImageIO.read(new File(s));
-		    ByteArrayOutputStream baos = new ByteArrayOutputStream();
-		    ImageIO.write(image, "png", baos);
-		    byte[] imageData = baos.toByteArray(); 
-		    System.out.println(imageData);
-		    
-		    return Response.ok(imageData).build();
+	        
+	        //convert the hexa string into a byte array
+	        byte[] val = new byte[str.length() / 2];
+	        for (int i = 0; i < val.length; i++) {
+	           int index = i * 2;
+	           int j = Integer.parseInt(str.substring(index, index + 2), 16);
+	           val[i] = (byte) j;
+	        }
+	      
+	        //return the png image
+		    return Response.ok(val).build();
 	       
 		} catch (IOException e) {
 			return null;

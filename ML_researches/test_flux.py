@@ -2,11 +2,11 @@ from datetime import datetime, timedelta
 from matplotlib import pyplot as plt
 from matplotlib import dates as md
 from pandas.plotting import register_matplotlib_converters
-
+from io import StringIO
 from sklearn import metrics
 from sklearn.metrics import mean_squared_error
 from statsmodels.tsa.ar_model import AR
-
+import io
 import sys
 import pandas as pd
 import numpy as np
@@ -78,7 +78,7 @@ def bike_per_hour(data):
                 if date[0].minute <= 30:
                     count_first_half += 1
                     hour_first_half += date[1]
-                else : 
+                else:
                     count_second_half += 1
                     hour_second_half += date[1]
         if count_first_half == 0:
@@ -185,7 +185,7 @@ def main():
         predictions.append(yhat)
         history.append(obs)
     error = mean_squared_error(test, predictions)
-    #print('Test MSE: %.3f' % error)
+    # print('Test MSE: %.3f' % error)
 
     dates = np.arange(0,24,0.5)
     xfmt = md.DateFormatter('%H:%M:%S')
@@ -193,14 +193,16 @@ def main():
     plt.xticks(rotation=90, )
     plt.plot(dts30, test)
     plt.plot(dts30, predictions, color='red')
-    plt.savefig('/home/constance/temp.png')
-    #plt.show()
+    # plt.show()
 
-    #with open("temp.png", "rb") as image:
-    #    f = image.read()
-    #    b = bytearray(f)
+    # serialize the image into bytearray png
+    buf = io.BytesIO()
+    plt.savefig(buf, format='png')
+    # convert the bytearray into a hexa string
+    hexstring = ''.join(format(x, '02x') for x in buf.getvalue())
 
-    print("/home/constance/temp.png")
+    # return the string to the micro service
+    print(hexstring)
 
 if __name__ == "__main__":
     main()
