@@ -115,92 +115,137 @@ def predict(coef, history):
 
 # usertype prétraité en R: subscriber=0, customer=1
 # "data" arg is a list of tuples (date, value)
-def avg_user_per_halfhour(data)
+def avg_user_per_halfhour(data):
     avg_data_per_halfhour_list = []
     for hours in range(0, 24):
         first_halfhour = 0
         second_halfhour = 0
+        number_of_data_fh = 0
+        number_of_data_sh = 0
         for line in data:
             if hours == line[0].hour:
-                if line[0].minute <= 30:
-                    first_halfhour += line[1]  # on ajoute +1 ou -1
+                if line[0].minute < 30:
+                    first_halfhour += line[1]
+                    number_of_data_fh += 1
                 else:
-                    second_halfhour += line[1]  # on ajoute +1 ou -1
-            avg_data_per_halfhour_list.append(first_halfhour)
-            avg_data_per_halfhour_list.append(second_halfhour)
+                    second_halfhour += line[1]
+                    number_of_data_sh += 1
+
+        # possibility of having no clients at all during an halfhour
+        if number_of_data_fh != 0:
+            first_halfhour = first_halfhour/number_of_data_fh
+        else:
+            first_halfhour = 0.5
+
+        # possibility of having no clients at all during an halfhour
+        if number_of_data_sh != 0:
+            second_halfhour = second_halfhour/number_of_data_sh
+        else:
+            first_halfhour = 0.5
+
+        avg_data_per_halfhour_list.append(first_halfhour)
+        avg_data_per_halfhour_list.append(second_halfhour)
     return avg_data_per_halfhour_list
 
 
-def main()
-	# extraction from csv
-	df = pd.read_csv('../RExtractor/output/201901-citibike-tripdata.csv', sep=',', header=0)
+def main():
+    # extraction from csv
+    df = pd.read_csv('../RExtractor/output/JC-201901-citibike-tripdata.csv', sep=',', header=0)
+
+    # id 3255 (8 Ave & W 31 St in NY)
+    # id 3183 (JC)
+    df_station = find_by_start_station_id(df, 3183)
+    # print(df_station)
+    # print(df_station[['start_year', 'start_month', 'start_day', 'start_hour', 'start_minute', 'start_second']])
+
+    # delete incomplete data
+    df = df.dropna()
+
+    # train on mondays, test on tuesdays
+    df_wday1 = extract_one_day(df_station, 1)
+    df_wday2 = extract_one_day(df_station, 2)
+
+    print(df_wday1)
+    print(df_wday1['usertype'])
+    print(type(df_wday1))
+
+    list_df_wday1 = df_wday1['usertype'].tolist()
+    list_df_wday2 = df_wday2['usertype'].tolist()
+
+    print(list_df_wday1)
+
+    sorted_dates1 = getDateData(df_wday1, "notimestamp")
+    sorted_dates2 = getDateData(df_wday2, "notimestamp")
+
+    print(sorted_dates1)
+    print(type(sorted_dates1))
+
+    tuples1 = list(zip(sorted_dates1, list_df_wday1))
+    tuples2 = list(zip(sorted_dates2, list_df_wday2))
+
+    print(tuples1)
+
+    averaged_data_per_30min1 = avg_user_per_halfhour(tuples1)
+    averaged_data_per_30min2 = avg_user_per_halfhour(tuples2)
+
+    print(averaged_data_per_30min1)
+    print(len(averaged_data_per_30min1))
+
+    train, test = averaged_data_per_30min1, averaged_data_per_30min2
+
+    # Train autoregression
+    model = AR(train)
+    model_fit = model.fit()
+    window = model_fit.k_ar
+    coef = model_fit.params
+    # Walk forward over time steps in test
+    history = train[len(train)-window:]
+    history = [history[i] for i in range(len(history))]
+    predictions = list()
+
+    print("window : "+str(window))
+
+    for t in range(len(test)):
+        length = len(history)
+        lag = [history[i] for i in range(length-window, length)]
+        yhat = coef[0]
+        for d in range(window):
+            yhat += coef[d+1] * lag[window-d-1]
+            obs = test[t]
+            predictions.append(yhat)
+            history.append(obs)
+            # print('predicted=%f, expected=%f' % (yhat, obs))
+
+        # error = metrics.mean_squared_error(test, predictions)
+        # print('Test MSE: %.3f' % error)
+
+    print(len(predictions))
+
+    # plot
+    dates = np.arange(0, 24, 0.5)
+    xfmt = md.DateFormatter('%H:%M:%S')
+    plt.rcParams['figure.figsize'] = [10, 5]
+    plt.xticks(rotation=90, )
+    plt.plot(test)
+    plt.plot(predictions, color='red')
+    plt.show()
+
+    """ 
+    # plot
+    test_one_day_y = []
+    for line in range(len(df_station[~msk])):
+        if df_station[~msk][['start_wday']][line] == 1:
+        test_one_day_y.append(df_station[~msk]['usertype'][line])
+    
+    dates = np.arange(0, 24, 1)
+    xfmt = md.DateFormatter('%H:%M:%S')
+    plt.rcParams['figure.figsize'] = [10, 5]
+    plt.xticks(rotation=90, )
+    plt.plot(test_one_day_y)
+    plt.plot(res, color='red')
+    plt.show()
+    """
 
 
-	# id 3255 (8 Ave & W 31 St in NY)
-	df_station = find_by_start_station_id(df, 3255)
-	# print(df_station)
-	# print(df_station[['start_year', 'start_month', 'start_day', 'start_hour', 'start_minute', 'start_second']])
-
-
-	# delete incomplete data
-	df = df.dropna()
-
-
-	# train on mondays, test on tuesdays
-	df_wday1 = extract_one_day(df_station, 1)
-	df_wday2 = extract_one_day(df_station, 2)
-
-
-	sorted_dates1 = getDateData(df_wday1, "notimestamp")
-	sorted_dates2 = getDateData(df_wday2, "notimestamp")
-
-	
-	tuples1 = list(zip(sorted_dates1,dfwday1[['usertype']]))
-	tuples2 = list(zip(sorted_dates2,dfwday1[['usertype']]))
-
-
-	averaged_data_per_30min1 = avg_user_per_halfhour(tuples1)
-	averaged_data_per_30min2 = avg_user_per_halfhour(tuples2)
-
-
-	train, test = averaged_data_per_30min2, averaged_data_per_30min1
-
-
-	# Train autoregression
-	model = AR(train)
-	model_fit = model.fit()
-	window = model_fit.k_ar
-	coef = model_fit.params
-	# Walk forward over time steps in test
-	history = train[len(train)-window:]
-	history = [history[i] for i in range(len(history))]
-	predictions = list()
-	for t in range(len(test)):
-	    length = len(history)
-	    lag = [history[i] for i in range(length-window, length)]
-	    yhat = coef[0]
-	    for d in range(window):
-		yhat += coef[d+1] * lag[window-d-1]
-	    obs = test[t]
-	    predictions.append(yhat)
-	    history.append(obs)
-	    print('predicted=%f, expected=%f' % (yhat, obs))
-	error = metrics.mean_squared_error(test, res)
-	print('Test MSE: %.3f' % error)
-
-
-	""" 
-	# plot
-	test_one_day_y = []
-	for line in range(len(df_station[~msk])):
-	    if df_station[~msk][['start_wday']][line] == 1:
-		test_one_day_y.append(df_station[~msk]['usertype'][line])
-
-	dates = np.arange(0, 24, 1)
-	xfmt = md.DateFormatter('%H:%M:%S')
-	plt.rcParams['figure.figsize'] = [10, 5]
-	plt.xticks(rotation=90, )
-	plt.plot(test_one_day_y)
-	plt.plot(res, color='red')
-	plt.show()
-	"""
+if __name__ == "__main__":
+    main()
