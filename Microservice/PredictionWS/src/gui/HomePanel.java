@@ -3,6 +3,7 @@ package gui;
 
 import java.io.IOException;
 
+import controller.RessourceManager;
 import javafx.application.Application;
 import javafx.event.ActionEvent;
 import javafx.geometry.Insets;
@@ -12,7 +13,14 @@ import javafx.scene.layout.HBox;
 import javafx.stage.Stage;
 
 public class HomePanel extends Application {
+	
 	private RessourceManager manager;
+	
+	public HomePanel(){}
+	
+	public HomePanel(RessourceManager manager){
+		this.manager = manager;
+	}
 	
     @Override
     public void start(Stage stage) {

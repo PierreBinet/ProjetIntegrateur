@@ -65,31 +65,20 @@ def getDateData(dataset, mode="timestamp") :
             data_diff.append(delta)
     return data_s, data_e, data_diff
 
-
+# Nombre de vélo par heure
 def bike_per_hour(data):
     bike_per_hours_list = []
     for hours in range(0,24):
         hour_first_half = 0
         hour_second_half = 0
-        count_first_half = 0
-        count_second_half = 0
         for date in data:
             if hours == date[0].hour:
                 if date[0].minute <= 30:
-                    count_first_half += 1
-                    hour_first_half += date[1]
+                    hour_first_half += date[1] # on ajoute +1 ou -1
                 else:
-                    count_second_half += 1
-                    hour_second_half += date[1]
-        if count_first_half == 0:
-            bike_per_hours_list.append(0)
-        else:
+                    hour_second_half += date[1] # on ajoute +1 ou -1
             bike_per_hours_list.append(hour_first_half)
-        if count_second_half == 0:
-            bike_per_hours_list.append(0)
-        else:
             bike_per_hours_list.append(hour_second_half)
-            
     return bike_per_hours_list
 
 
