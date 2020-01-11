@@ -34,9 +34,6 @@ df.at[0, 'stoptime'].year #affiche la donnée 'stoptime' de la donnée d'indice 
 """
 
 
-
-
-
 """
 def train_test_assignment_sk(dfs, ratio):
     msk = np.random.rand(len(dfs)) < ratio
@@ -78,14 +75,14 @@ def extract_one_day(dfs, day):
 
 # Conversion d'un string en datetime
 def convert_string_to_datetime(hour, minute, second):
-    date_time_str = str(hour)+':'+str(minute)+':'+str(round(second,3))
+    date_time_str = str(hour)+':'+str(minute)+':'+str(round(second, 3))
     date_time_obj = datetime.strptime(date_time_str, '%H:%M:%S.%f')
     date_time_obj = pd.to_datetime(date_time_obj)
     return date_time_obj
 
 
 # récupère les dates du dataset après extraction station/jour et récupère les dates, les convertit en timestamp
-def getDateData(dataset, mode="timestamp"):
+def get_date_data(dataset, mode="timestamp"):
     dataset = dataset.reset_index(drop=True)
     s_day = dataset['start_day']
     s_month = dataset['start_month']
@@ -131,17 +128,18 @@ def avg_user_per_halfhour(data):
                     second_halfhour += line[1]
                     number_of_data_sh += 1
 
-        # possibility of having no clients at all during an halfhour
+        # possibility of having no clients at all during an half hour
+        # often, during nighttime we have exclusively subscriber
         if number_of_data_fh != 0:
             first_halfhour = first_halfhour/number_of_data_fh
         else:
-            first_halfhour = 0.5
+            first_halfhour = 0
 
-        # possibility of having no clients at all during an halfhour
+        # same thing for the second half hour
         if number_of_data_sh != 0:
             second_halfhour = second_halfhour/number_of_data_sh
         else:
-            first_halfhour = 0.5
+            first_halfhour = 0
 
         avg_data_per_halfhour_list.append(first_halfhour)
         avg_data_per_halfhour_list.append(second_halfhour)
@@ -150,11 +148,11 @@ def avg_user_per_halfhour(data):
 
 def main():
     # extraction from csv
-    df = pd.read_csv('../RExtractor/output/JC-201901-citibike-tripdata.csv', sep=',', header=0)
+    df = pd.read_csv('../RExtractor/output/201901-citibike-tripdata.csv', sep=',', header=0)
 
     # id 3255 (8 Ave & W 31 St in NY)
     # id 3183 (JC)
-    df_station = find_by_start_station_id(df, 3183)
+    df_station = find_by_start_station_id(df, 3255)
     # print(df_station)
     # print(df_station[['start_year', 'start_month', 'start_day', 'start_hour', 'start_minute', 'start_second']])
 
@@ -165,31 +163,35 @@ def main():
     df_wday1 = extract_one_day(df_station, 1)
     df_wday2 = extract_one_day(df_station, 2)
 
-    print(df_wday1)
-    print(df_wday1['usertype'])
+    # print(df_wday1)
+    print("df_wday1['usertype'] : "+str(df_wday1['usertype']))
     print(type(df_wday1))
 
     list_df_wday1 = df_wday1['usertype'].tolist()
     list_df_wday2 = df_wday2['usertype'].tolist()
 
-    print(list_df_wday1)
+    print("\n list_df_wday1 : "+str(list_df_wday1))
+    print(type(list_df_wday1))
 
-    sorted_dates1 = getDateData(df_wday1, "notimestamp")
-    sorted_dates2 = getDateData(df_wday2, "notimestamp")
+    sorted_dates1 = get_date_data(df_wday1, "notimestamp")
+    sorted_dates2 = get_date_data(df_wday2, "notimestamp")
 
-    print(sorted_dates1)
+    print("\n sorted_dates1 : "+str(sorted_dates1))
     print(type(sorted_dates1))
 
     tuples1 = list(zip(sorted_dates1, list_df_wday1))
     tuples2 = list(zip(sorted_dates2, list_df_wday2))
 
-    print(tuples1)
+    print("\n tuples1 : "+str(tuples1))
+    print(type(tuples1))
 
     averaged_data_per_30min1 = avg_user_per_halfhour(tuples1)
     averaged_data_per_30min2 = avg_user_per_halfhour(tuples2)
 
-    print(averaged_data_per_30min1)
-    print(len(averaged_data_per_30min1))
+    print("\n averaged_data_per_30min1 (train): ")
+    print("len : "+str(len(averaged_data_per_30min1)))
+    print("\n averaged_data_per_30min2 (test): ")
+    print("len : "+str(len(averaged_data_per_30min2)))
 
     train, test = averaged_data_per_30min1, averaged_data_per_30min2
 
@@ -197,13 +199,19 @@ def main():
     model = AR(train)
     model_fit = model.fit()
     window = model_fit.k_ar
+    print("\n window : "+str(window))
+
     coef = model_fit.params
+    print("\n coef : "+str(coef))
+
     # Walk forward over time steps in test
     history = train[len(train)-window:]
-    history = [history[i] for i in range(len(history))]
-    predictions = list()
+    print("\n history : "+str(history))
 
-    print("window : "+str(window))
+    # history = [history[i] for i in range(len(history))]
+    # print("\n history : "+str(history))
+
+    predictions = list()
 
     for t in range(len(test)):
         length = len(history)
@@ -211,10 +219,10 @@ def main():
         yhat = coef[0]
         for d in range(window):
             yhat += coef[d+1] * lag[window-d-1]
-            obs = test[t]
-            predictions.append(yhat)
-            history.append(obs)
-            # print('predicted=%f, expected=%f' % (yhat, obs))
+        obs = test[t]
+        predictions.append(yhat)
+        history.append(obs)
+        # print('predicted=%f, expected=%f' % (yhat, obs))
 
         # error = metrics.mean_squared_error(test, predictions)
         # print('Test MSE: %.3f' % error)
