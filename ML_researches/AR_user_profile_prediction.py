@@ -22,43 +22,8 @@ from matplotlib import pyplot as plt
 from matplotlib import dates as md
 import pandas as pd
 import numpy as np
-
-
-""" ancienne méthode d'extraction lorsque la BDD n'avait pas de colonnes séparées pour année/mois/jour/heure/min
-df['starttime'] = pd.to_datetime(df['starttime'])  # type datetime
-df['stoptime']=pd.to_datetime(df['stoptime'])  # type datetime
-
-
-
-df.at[0, 'stoptime'].year #affiche la donnée 'stoptime' de la donnée d'indice 0
-"""
-
-
-"""
-def train_test_assignment_sk(dfs, ratio):
-    msk = np.random.rand(len(dfs)) < ratio
-    trainfold = dfs[msk][['start_wday', 'start_hour']]
-    trainy = dfs[msk][['usertype']]
-    testfold = dfs[~msk][['start_wday', 'start_hour']]
-    testy = dfs[~msk][['usertype']]
-    return trainfold, trainy, testfold, testy
-
-
-# dataset %70 train 30%test
-train_fold, train_y, test_fold, test_y = train_test_assignment_sk(df_station, 0.7)
-
-# test algo
-# clf = nn.MLPClassifier(hidden_layer_sizes=50) KNN: marche pas
-clf = svm.SVR()
-clf.fit(train_fold, train_y.values.ravel())
-res = clf.predict(test_fold)
-error = metrics.mean_squared_error(test_y, res)
-precision = metrics.explained_variance_score(test_y, res)
-print(res.shape)
-print("machine learning successful with precision of "+str(precision)+"\n")
-print(str(res)+"\n")
-print(test_y.values.ravel())
-"""
+import io
+import sys
 
 
 # Retourne les datasets où le départ ou l'arrivée est à une station donnée
@@ -67,10 +32,45 @@ def find_by_start_station_id(dataset, id_start_station):
     return dataset_station_s
 
 
-def extract_one_day(dfs, day):
-    df_one_day = dfs[dfs.start_wday == day]
+def extract_one_day(dfs, day, train):
+    """ method one : arbitrary train/test couples depending on the day (putting weekdays together
+    if train:
+        df_one_day = dfs[dfs.start_wday == day]
+    else:
+        if day == 0:
+            df_one_day = dfs[dfs.start_wday == day+1]
+        elif day == 5:
+            df_one_day = dfs[dfs.start_wday == 4]
+        elif day == 6:
+            df_one_day = dfs[dfs.start_wday == 0]
+        else:  # day in range(1,4)
+            df_one_day = dfs[dfs.start_wday == 6]
+    """
+
+    # method 2
+    if train:
+        df_one_day = dfs[dfs.start_wday != day]
+    else:
+        df_one_day = dfs[dfs.start_wday == day]
 
     return df_one_day
+
+
+def column_extraction(dataset, pred_type):
+    lst = []
+    if pred_type == 0:  # usertype prediction
+        lst = dataset['usertype'].tolist()
+    elif pred_type == 1:  # gender prediction
+        for line in dataset['gender']:
+            if line == 1:  # male
+                lst.append(0)
+            elif line == 2:  # female
+                lst.append(1)
+            else:  # unknown
+                lst.append(0.5)
+    elif pred_type == 2:  # birth year
+        lst = dataset['birth.year'].tolist()
+    return lst
 
 
 # Conversion d'un string en datetime
@@ -84,9 +84,6 @@ def convert_string_to_datetime(hour, minute, second):
 # récupère les dates du dataset après extraction station/jour et récupère les dates, les convertit en timestamp
 def get_date_data(dataset, mode="timestamp"):
     dataset = dataset.reset_index(drop=True)
-    s_day = dataset['start_day']
-    s_month = dataset['start_month']
-    s_year = dataset['start_year']
     s_hour = dataset['start_hour']
     s_minute = dataset['start_minute']
     s_second = dataset['start_second']
@@ -112,9 +109,9 @@ def predict(coef, history):
 
 # usertype prétraité en R: subscriber=0, customer=1
 # "data" arg is a list of tuples (date, value)
-def avg_user_per_halfhour(data):
+def avg_user_per_halfhour(data, pred_type):
     avg_data_per_halfhour_list = []
-    for hours in range(0, 24):
+    for hours in range(0, 23):
         first_halfhour = 0
         second_halfhour = 0
         number_of_data_fh = 0
@@ -129,30 +126,57 @@ def avg_user_per_halfhour(data):
                     number_of_data_sh += 1
 
         # possibility of having no clients at all during an half hour
-        # often, during nighttime we have exclusively subscriber
+        # (often during nighttime)
         if number_of_data_fh != 0:
             first_halfhour = first_halfhour/number_of_data_fh
+        elif not avg_data_per_halfhour_list: # no client and first half hour of the day
+            if pred_type == 0 or pred_type == 1:  # if we consider gender or usertype, we put a default "0"
+                first_halfhour = 0
+            else:  # if we consider birthyear we put a default 1990
+                first_halfhour = 1990
         else:
-            first_halfhour = 0
+            first_halfhour = avg_data_per_halfhour_list[-1]
+
+        avg_data_per_halfhour_list.append(first_halfhour)
 
         # same thing for the second half hour
         if number_of_data_sh != 0:
             second_halfhour = second_halfhour/number_of_data_sh
         else:
-            first_halfhour = 0
+            second_halfhour = avg_data_per_halfhour_list[-1]
 
-        avg_data_per_halfhour_list.append(first_halfhour)
         avg_data_per_halfhour_list.append(second_halfhour)
+
     return avg_data_per_halfhour_list
 
 
 def main():
-    # extraction from csv
-    df = pd.read_csv('../RExtractor/output/201901-citibike-tripdata.csv', sep=',', header=0)
+    """
+    if len(sys.argv) != 6:
+        print("autoregression algorithm should be called with 6 arguments")
+        print("use: day | start_station | csv trips | csv stations | prediction type (0 for usertype)")
+        sys.exit(-1)
 
+    argday = int(sys.argv[1])
+    argstation_num = int(sys.argv[2])
+    argtrips_one_month = sys.argv[3]
+    argstations = sys.argv[4]
+    argpredtype = sys.argv[5]
+    """
+
+    # lundi = 1
+    argday = 2
     # id 3255 (8 Ave & W 31 St in NY)
     # id 3183 (JC)
-    df_station = find_by_start_station_id(df, 3255)
+    argstation_num = int(3255)
+    argtrips_one_month = '../RExtractor/output/201901-citibike-tripdata.csv'
+    argpredtype = 2
+    # argstations = sys.argv[4]
+
+    # extraction from csv
+    df = pd.read_csv(argtrips_one_month, sep=',', header=0)
+
+    df_station = find_by_start_station_id(df, argstation_num)
     # print(df_station)
     # print(df_station[['start_year', 'start_month', 'start_day', 'start_hour', 'start_minute', 'start_second']])
 
@@ -160,37 +184,38 @@ def main():
     df = df.dropna()
 
     # train on mondays, test on tuesdays
-    df_wday1 = extract_one_day(df_station, 1)
-    df_wday2 = extract_one_day(df_station, 2)
+    df_wday1 = extract_one_day(df_station, argday, train=1)
+    df_wday2 = extract_one_day(df_station, argday, train=0)
 
-    # print(df_wday1)
-    print("df_wday1['usertype'] : "+str(df_wday1['usertype']))
-    print(type(df_wday1))
+    # print("df_wday1['usertype'] : "+str(df_wday1['usertype']))
+    # print(type(df_wday1))
 
-    list_df_wday1 = df_wday1['usertype'].tolist()
-    list_df_wday2 = df_wday2['usertype'].tolist()
+    list_df_wday1 = column_extraction(df_wday1, argpredtype)
+    list_df_wday2 = column_extraction(df_wday2, argpredtype)
 
-    print("\n list_df_wday1 : "+str(list_df_wday1))
-    print(type(list_df_wday1))
+    # print("\n list_df_wday1 : "+str(list_df_wday1))
+    # print(type(list_df_wday1))
 
     sorted_dates1 = get_date_data(df_wday1, "notimestamp")
     sorted_dates2 = get_date_data(df_wday2, "notimestamp")
 
-    print("\n sorted_dates1 : "+str(sorted_dates1))
-    print(type(sorted_dates1))
+    # print("\n sorted_dates1 : "+str(sorted_dates1))
+    # print(type(sorted_dates1))
 
     tuples1 = list(zip(sorted_dates1, list_df_wday1))
     tuples2 = list(zip(sorted_dates2, list_df_wday2))
 
-    print("\n tuples1 : "+str(tuples1))
-    print(type(tuples1))
+    # print("\n tuples1 : "+str(tuples1))
+    # print(type(tuples1))
 
-    averaged_data_per_30min1 = avg_user_per_halfhour(tuples1)
-    averaged_data_per_30min2 = avg_user_per_halfhour(tuples2)
+    averaged_data_per_30min1 = avg_user_per_halfhour(tuples1, argpredtype)
+    averaged_data_per_30min2 = avg_user_per_halfhour(tuples2, argpredtype)
 
     print("\n averaged_data_per_30min1 (train): ")
+    print(averaged_data_per_30min1)
     print("len : "+str(len(averaged_data_per_30min1)))
     print("\n averaged_data_per_30min2 (test): ")
+    print(averaged_data_per_30min2)
     print("len : "+str(len(averaged_data_per_30min2)))
 
     train, test = averaged_data_per_30min1, averaged_data_per_30min2
@@ -199,16 +224,13 @@ def main():
     model = AR(train)
     model_fit = model.fit()
     window = model_fit.k_ar
-    print("\n window : "+str(window))
+    # print("\n window : "+str(window))
 
     coef = model_fit.params
-    print("\n coef : "+str(coef))
+    # print("\n coef : "+str(coef))
 
     # Walk forward over time steps in test
     history = train[len(train)-window:]
-    print("\n history : "+str(history))
-
-    # history = [history[i] for i in range(len(history))]
     # print("\n history : "+str(history))
 
     predictions = list()
@@ -227,8 +249,6 @@ def main():
         # error = metrics.mean_squared_error(test, predictions)
         # print('Test MSE: %.3f' % error)
 
-    print(len(predictions))
-
     # plot
     dates = np.arange(0, 24, 0.5)
     xfmt = md.DateFormatter('%H:%M:%S')
@@ -238,21 +258,17 @@ def main():
     plt.plot(predictions, color='red')
     plt.show()
 
-    """ 
-    # plot
-    test_one_day_y = []
-    for line in range(len(df_station[~msk])):
-        if df_station[~msk][['start_wday']][line] == 1:
-        test_one_day_y.append(df_station[~msk]['usertype'][line])
-    
-    dates = np.arange(0, 24, 1)
-    xfmt = md.DateFormatter('%H:%M:%S')
-    plt.rcParams['figure.figsize'] = [10, 5]
-    plt.xticks(rotation=90, )
-    plt.plot(test_one_day_y)
-    plt.plot(res, color='red')
-    plt.show()
-    """
+
+"""
+    # serialize the image into bytearray png
+    buf = io.BytesIO()
+    plt.savefig(buf, format='png')
+    # convert the bytearray into a hexa string
+    hexstring = ''.join(format(x, '02x') for x in buf.getvalue())
+
+    # return the string to the micro service
+    print(hexstring)
+"""
 
 
 if __name__ == "__main__":
