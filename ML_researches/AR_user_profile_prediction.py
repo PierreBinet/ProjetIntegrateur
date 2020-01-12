@@ -129,7 +129,7 @@ def avg_user_per_halfhour(data, pred_type):
         # (often during nighttime)
         if number_of_data_fh != 0:
             first_halfhour = first_halfhour/number_of_data_fh
-        elif not avg_data_per_halfhour_list: # no client and first half hour of the day
+        elif not avg_data_per_halfhour_list:  # no client and first half hour of the day
             if pred_type == 0 or pred_type == 1:  # if we consider gender or usertype, we put a default "0"
                 first_halfhour = 0
             else:  # if we consider birthyear we put a default 1990
@@ -151,7 +151,7 @@ def avg_user_per_halfhour(data, pred_type):
 
 
 def main():
-    """
+
     if len(sys.argv) != 6:
         print("autoregression algorithm should be called with 6 arguments")
         print("use: day | start_station | csv trips | csv stations | prediction type (0 for usertype)")
@@ -162,8 +162,8 @@ def main():
     argtrips_one_month = sys.argv[3]
     argstations = sys.argv[4]
     argpredtype = sys.argv[5]
-    """
 
+    """ tests
     # lundi = 1
     argday = 2
     # id 3255 (8 Ave & W 31 St in NY)
@@ -172,6 +172,7 @@ def main():
     argtrips_one_month = '../RExtractor/output/201901-citibike-tripdata.csv'
     argpredtype = 2
     # argstations = sys.argv[4]
+    """
 
     # extraction from csv
     df = pd.read_csv(argtrips_one_month, sep=',', header=0)
