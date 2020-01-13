@@ -21,6 +21,8 @@ import javax.ws.rs.core.Response;
 @Path("prediction")
 public class PredictionFluxWS {
 	
+	//http://localhost:8080/PredictionFluxWS/insaRessources/prediction/flow?day=2&station_id=3184&data=/home/constance/Documents/5A/Projet_Integrateur/ProjetIntegrateur/RExtractor/output/JC-201811-citibike-tripdata.csv&station=/home/constance/Documents/5A/Projet_Integrateur/ProjetIntegrateur/RExtractor/output/stationTable.csv
+	
 	@GET
 	@Path("flow")
 	@Produces("image/png")
