@@ -152,16 +152,16 @@ def avg_user_per_halfhour(data, pred_type):
 
 def main():
 
-    if len(sys.argv) != 6:
-        print("autoregression algorithm should be called with 6 arguments")
-        print("use: day | start_station | csv trips | csv stations | prediction type (0 for usertype)")
+    if len(sys.argv) != 5:
+        print("autoregression algorithm should be called with 4 arguments")
+        print("use: day | start_station | csv trips(one month) | prediction type (0 for usertype)")
         sys.exit(-1)
 
     argday = int(sys.argv[1])
     argstation_num = int(sys.argv[2])
     argtrips_one_month = sys.argv[3]
-    argstations = sys.argv[4]
-    argpredtype = sys.argv[5]
+    # argstations = sys.argv[4]
+    argpredtype = sys.argv[4]
 
     """ tests
     # lundi = 1

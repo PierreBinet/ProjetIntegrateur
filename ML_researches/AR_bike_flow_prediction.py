@@ -90,8 +90,8 @@ def predict(coef, history):
 
 
 def main():
-    if len(sys.argv) != 5:
-        print("use: day | start_station | csv trips | csv stations")
+    if len(sys.argv) != 4:
+        print("use: day | start_station | csv trips(one month)")
         exit(-1)
 
     '''    day = 1
@@ -102,7 +102,7 @@ def main():
     day = int(sys.argv[1])
     station_num = int(sys.argv[2])
     trips_one_month = pd.read_csv(sys.argv[3])
-    stations = sys.argv[4]
+    # stations = sys.argv[4]
     
     # Liste d'intervalles de 30 min sur une journée
     # (on filtre les trajet plus long)
