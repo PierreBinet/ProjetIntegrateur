@@ -37,14 +37,55 @@ public class PredictionFluxWS {
 			Process p = Runtime.getRuntime().exec("python3 /home/constance/Documents/5A/Projet_Integrateur/ProjetIntegrateur/ML_researches/AR_bike_flow_prediction.py "+day+" "+station_id+" "+data);
 		
 			BufferedReader stdInput = new BufferedReader(new InputStreamReader(p.getInputStream()));
-			BufferedReader stdError = new BufferedReader(new InputStreamReader(p.getErrorStream()));
+			//BufferedReader stdError = new BufferedReader(new InputStreamReader(p.getErrorStream()));
 			
 			//retrieve the hexa string returned by the python program
 	        str = stdInput.readLine();
 	        // read any errors from the attempted command
-	        while ((error = stdError.readLine()) != null) {
+	       /* while ((error = stdError.readLine()) != null) {
 	           System.out.println(error);
+	        } */
+	        
+	        //convert the hexa string into a byte array
+	        byte[] val = new byte[str.length() / 2];
+	        for (int i = 0; i < val.length; i++) {
+	           int index = i * 2;
+	           int j = Integer.parseInt(str.substring(index, index + 2), 16);
+	           val[i] = (byte) j;
 	        }
+	      
+	        //return the png image
+		    return Response.ok(val).build();
+	       
+		} catch (IOException e) {
+			return null;
+		}
+	   
+	}
+	
+	@GET
+	@Path("usertype")
+	@Produces("image/png")
+	//@Produces(MediaType.TEXT_PLAIN)
+	public Response getUsertype (@QueryParam(value = "day") final int day,
+		    @QueryParam(value = "station_id") final int station_id, 
+		    @QueryParam("data") File data), 
+			@QueryParam(value = "usertype") final int usertype{
+		String str = null;
+		String error = null;
+		try {
+			//Process p = Runtime.getRuntime().exec("python3 ../../../../../../ML_researches/test_flux.py day station_id data station");
+			Process p = Runtime.getRuntime().exec("python3 /home/constance/Documents/5A/Projet_Integrateur/ProjetIntegrateur/ML_researches/AR_bike_flow_prediction.py "+day+" "+station_id+" "+data+" "+usertype);
+		
+			BufferedReader stdInput = new BufferedReader(new InputStreamReader(p.getInputStream()));
+			//BufferedReader stdError = new BufferedReader(new InputStreamReader(p.getErrorStream()));
+			
+			//retrieve the hexa string returned by the python program
+	        str = stdInput.readLine();
+	        // read any errors from the attempted command
+	       /* while ((error = stdError.readLine()) != null) {
+	           System.out.println(error);
+	        } */
 	        
 	        //convert the hexa string into a byte array
 	        byte[] val = new byte[str.length() / 2];
@@ -63,29 +104,6 @@ public class PredictionFluxWS {
 	   
 	}
 		
-	@GET
-	@Path("test")
-	@Produces(MediaType.TEXT_PLAIN)
-	public String getLongueur(@QueryParam(value = "day") final int day,
-		    @QueryParam(value = "station_id") final int station_id, 
-		    @QueryParam("data") File data,
-		    @QueryParam("station") File station){
-			  
-		int i;
-		try {
-			FileInputStream fin=new FileInputStream(data);  
-			i = fin.read();
-			fin.close();
-		
-			String ans = "Day is : "+ day+" station is: "+station_id+ " data : "+ data.getName();
-			ans = ans + " gfdsg "+ (char)i;
-			return ans;
-		} catch (IOException e) {
-			e.printStackTrace();
-			return null;
-		}
-		
-	}
 	
 	@GET
 	@Produces(MediaType.TEXT_PLAIN)
