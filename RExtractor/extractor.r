@@ -31,7 +31,7 @@ for (i in 1:length(myfiles)){
   JCtripHistory$start_second = start_date$sec
   
   JCtripHistory$end_day= end_date$mday
-  JCtripHistory$end_wday= weekdays(as.Date(end_date))
+  JCtripHistory$end_wday= as.POSIXlt(as.Date(end_date))$wday
   JCtripHistory$end_month = end_date$mon + 1
   JCtripHistory$end_year = end_date$year + 1900
   JCtripHistory$end_hour = end_date$hour
