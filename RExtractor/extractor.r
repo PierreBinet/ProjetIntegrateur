@@ -5,9 +5,9 @@
     library(rjson)
     library(jsonlite)
     
-    df = read.csv("./station_data/station_data.csv")
-    StationTable = data.frame(id = df$stationBeanList__id, name = df$stationBeanList__stationName, capacity = df$stationBeanList__totalDocks, latitude = df$stationBeanList__latitude, longitude = df$stationBeanList__longitude)
-    write.csv(StationTable,'./output/stationTable.csv', row.names = FALSE)
+    #df = read.csv("./station_data/station_data.csv")
+    #StationTable = data.frame(id = df$stationBeanList__id, name = df$stationBeanList__stationName, capacity = df$stationBeanList__totalDocks, latitude = df$stationBeanList__latitude, longitude = df$stationBeanList__longitude)
+    #write.csv(StationTable,'./output/stationTable.csv', row.names = FALSE)
     
     #ridershipAndMembership = read.csv("./ridershipdata/2019Q1.csv", sep=",")
     #tripHistory = read.csv("./tripdata/201901-citibike-tripdata.csv", sep=",")
@@ -38,6 +38,8 @@
       JCtripHistory$end_minute = end_date$min
       JCtripHistory$end_second = end_date$sec
       
+      JCtripHistory$id = paste("JC",as.character(JCtripHistory$start.station.id),as.character(JCtripHistory$end.station.id),as.character(JCtripHistory$starttime), sep="")
+      
       JCtripHistory <- JCtripHistory %>% mutate(usertype = ifelse(usertype == "Subscriber",0,1))
       
       drop_vec <- c("start.station.name","start.station.latitude","start.station.longitude","end.station.name","end.station.latitude","end.station.longitude","starttime","stoptime")
@@ -45,6 +47,7 @@
       
       names(JCtripHistory)[names(JCtripHistory) == "start.station.id"] <- "start_station_id"
       names(JCtripHistory)[names(JCtripHistory) == "end.station.id"] <- "end_station_id"
+      names(JCtripHistory)[names(JCtripHistory) == "birth.year"] <- "birth_year"
     
       filename = strsplit(myfiles[i],"/")[[1]][3]
       write.csv(JCtripHistory,paste('./output',filename,sep="/"), row.names = FALSE)}
