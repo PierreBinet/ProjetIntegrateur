@@ -50,7 +50,7 @@
       names(JCtripHistory)[names(JCtripHistory) == "birth.year"] <- "birth_year"
     
       filename = strsplit(myfiles[i],"/")[[1]][3]
-      write.csv(JCtripHistory,paste('./output',filename,sep="/"), row.names = FALSE)}
+      write.csv(JCtripHistory,paste('./output',filename,sep="/"), row.names = FALSE, col.names = FALSE)}
     
     
     #old code that was supposed to fetch station information using what was in the original dataset
