@@ -76,7 +76,7 @@ def column_extraction(dataset, pred_type):
             else:  # unknown
                 lst.append(0.5)
     elif pred_type == 2:  # birth year
-        lst = dataset['birth.year'].tolist()
+        lst = dataset['birth_year'].tolist()
     return lst
 
 
