@@ -162,15 +162,16 @@ def main():
     argtrips_one_month = sys.argv[3]
     # argstations = sys.argv[4]
     argpredtype = sys.argv[4]
+    """
 
-    """ tests
+    # tests
     # lundi = 1
     argday = 2
     # id 3255 (8 Ave & W 31 St in NY)
     # id 3183 (JC)
-    argstation_num = int(3255)
-    argtrips_one_month = '../RExtractor/output/201901-citibike-tripdata.csv'
-    argpredtype = 2
+    argstation_num = int(3183)
+    argtrips_one_month = '../RExtractor/output/JC-201811-citibike-tripdata.csv'
+    argpredtype = 0
     # argstations = sys.argv[4]
     """
 
