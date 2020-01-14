@@ -29,22 +29,22 @@ public class PredictionFluxWS {
 	//@Produces(MediaType.TEXT_PLAIN)
 	public Response getFlow (@QueryParam(value = "day") final int day,
 		    @QueryParam(value = "station_id") final int station_id, 
-		    @QueryParam("data") File data,
-		    @QueryParam("station") File station){
+		    @QueryParam("data") File data){
 		String str = null;
+		String error = null;
 		try {
 			//Process p = Runtime.getRuntime().exec("python3 ../../../../../../ML_researches/test_flux.py day station_id data station");
-			Process p = Runtime.getRuntime().exec("python3 /home/constance/Documents/5A/Projet_Integrateur/ProjetIntegrateur/ML_researches/test_flux.py "+day+" "+station_id+" "+data+" "+station);
+			Process p = Runtime.getRuntime().exec("python3 /home/constance/Documents/5A/Projet_Integrateur/ProjetIntegrateur/ML_researches/AR_bike_flow_prediction.py "+day+" "+station_id+" "+data);
 		
 			BufferedReader stdInput = new BufferedReader(new InputStreamReader(p.getInputStream()));
-			//BufferedReader stdError = new BufferedReader(new InputStreamReader(p.getErrorStream()));
+			BufferedReader stdError = new BufferedReader(new InputStreamReader(p.getErrorStream()));
 			
 			//retrieve the hexa string returned by the python program
 	        str = stdInput.readLine();
 	        // read any errors from the attempted command
-	        //while ((s = stdError.readLine()) != null) {
-	           //System.out.println(s);
-	        //}
+	        while ((error = stdError.readLine()) != null) {
+	           System.out.println(error);
+	        }
 	        
 	        //convert the hexa string into a byte array
 	        byte[] val = new byte[str.length() / 2];
