@@ -116,7 +116,6 @@ def main():
    # stations = sys.argv[4]
 
     # Liste d'intervalles de 30 min sur une journée
-    # (on filtre les trajet plus long)
     dts30 = [dt.strftime('%H:%M:%S.%f') for dt in
              datetime_range(datetime(2019, 1, 1, 0, 0), datetime(2019, 1, 1, 23, 59),
                             timedelta(minutes=30))]

@@ -12,6 +12,7 @@ state : does not compile
 
 # imports
 from sklearn.cluster import DBSCAN
+from datetime import datetime, timedelta
 from sklearn import svm
 from sklearn import neighbors
 from sklearn import neural_network as nn
@@ -55,6 +56,12 @@ def extract_one_day(dfs, day, train):
 
     return df_one_day
 
+# Réalise le range d'intevalle pour un delta donné
+def datetime_range(start, end, delta):
+    current = start
+    while current < end:
+        yield current
+        current += delta
 
 def column_extraction(dataset, pred_type):
     lst = []
@@ -161,7 +168,7 @@ def main():
     argstation_num = int(sys.argv[2])
     argtrips_one_month = sys.argv[3]
     # argstations = sys.argv[4]
-    argpredtype = sys.argv[4]
+    argpredtype = int(sys.argv[4])
     """
 
     # tests
@@ -174,6 +181,7 @@ def main():
     argpredtype = 0
     # argstations = sys.argv[4]
     """
+
 
     # extraction from csv
     df = pd.read_csv(argtrips_one_month, sep=',', header=0)
@@ -213,12 +221,12 @@ def main():
     averaged_data_per_30min1 = avg_user_per_halfhour(tuples1, argpredtype)
     averaged_data_per_30min2 = avg_user_per_halfhour(tuples2, argpredtype)
 
-    print("\n averaged_data_per_30min1 (train): ")
-    print(averaged_data_per_30min1)
-    print("len : "+str(len(averaged_data_per_30min1)))
-    print("\n averaged_data_per_30min2 (test): ")
-    print(averaged_data_per_30min2)
-    print("len : "+str(len(averaged_data_per_30min2)))
+    #print("\n averaged_data_per_30min1 (train): ")
+    #print(averaged_data_per_30min1)
+    #print("len : "+str(len(averaged_data_per_30min1)))
+    #print("\n averaged_data_per_30min2 (test): ")
+    #print(averaged_data_per_30min2)
+    #print("len : "+str(len(averaged_data_per_30min2)))
 
     train, test = averaged_data_per_30min1, averaged_data_per_30min2
 
@@ -251,6 +259,8 @@ def main():
         # error = metrics.mean_squared_error(test, predictions)
         # print('Test MSE: %.3f' % error)
 
+    # Liste d'intervalles de 30 min sur une journée
+
     # plot
     dates = np.arange(0, 24, 0.5)
     xfmt = md.DateFormatter('%H:%M:%S')
@@ -258,10 +268,8 @@ def main():
     plt.xticks(rotation=90, )
     plt.plot(test)
     plt.plot(predictions, color='red')
-    plt.show()
+    #plt.show()
 
-
-"""
     # serialize the image into bytearray png
     buf = io.BytesIO()
     plt.savefig(buf, format='png')
@@ -270,8 +278,6 @@ def main():
 
     # return the string to the micro service
     print(hexstring)
-"""
-
 
 if __name__ == "__main__":
     main()
