@@ -25,6 +25,7 @@ import javafx.stage.Stage;
 
 public class HomePanel extends Application {
 	
+	private String URL = "/home/katran/Bureau/5SDBD/ProjetIntegrateur/RExtractor/output/JC-";
 	private RessourceManager manager;
 	private int station_id;
 	private int day;
@@ -147,7 +148,7 @@ public class HomePanel extends Application {
 
 				//System.out.println("DEBUG : day :"+day+" station : "+station_id);
 				System.out.println("DEBUG : year :"+year+" month : "+month);
-				image = manager.GETFluxRequest(day, station_id, "/home/katran/Bureau/5SDBD/ProjetIntegrateur/RExtractor/output/JC-"+year+month+"-citibike-tripdata.csv");
+				image = manager.GETFluxRequest(day, station_id, URL+year+month+"-citibike-tripdata.csv");
 				Image image1 = SwingFXUtils.toFXImage(image, null);
 			    ImageView imageView = new ImageView();
 			    imageView.setImage(image1);
