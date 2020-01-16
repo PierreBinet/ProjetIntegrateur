@@ -64,18 +64,15 @@ public class RessourceManager {
 	
 	
 	
-	public static BufferedImage MyGETRequest() throws IOException {
+	public  BufferedImage GETFluxRequest(int day, int station, String file) throws IOException {
 
-	    URL urlForGetRequest = new URL("http://localhost:8080/PredictionWS/insaRessources/prediction/flow?day=2&station_id=3184&data=/home/katran/Bureau/5SDBD/ProjetIntegrateur/RExtractor/output/JC-201811-citibike-tripdata.csv");
-	    String readLine = null;
+	    URL urlForGetRequest = new URL("http://localhost:8080/PredictionWS/insaRessources/prediction/flow?day="+day+"&station_id="+station+"&data="+file);
 	    HttpURLConnection conection = (HttpURLConnection) urlForGetRequest.openConnection();
 	    conection.setRequestMethod("GET");
 	    int responseCode = conection.getResponseCode();
 	    
 	    if (responseCode == HttpURLConnection.HTTP_OK) {
-	        
 	    	BufferedImage bf = ImageIO.read(conection.getInputStream());
-	        
 	        return bf;
 
 	    } else {
