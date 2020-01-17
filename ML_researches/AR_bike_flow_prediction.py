@@ -1,3 +1,6 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*- 
+
 from datetime import datetime, timedelta
 from matplotlib import pyplot as plt
 from matplotlib import dates as md
@@ -8,9 +11,18 @@ from sklearn.metrics import mean_squared_error
 from statsmodels.tsa.ar_model import AR
 import io
 import sys
+import csv
 import pandas as pd
 import numpy as np
+from flask import (
+    Flask,
+    render_template,
+    send_file,
+    request
+)
 
+# Create the application instance
+app = Flask(__name__, template_folder="templates")
 
 # Conversion d'un string en datetime
 def convertStringToDatetime(hour, minute, second):
@@ -100,20 +112,11 @@ def predict(coef, history):
     return yhat
 
 
-def main():
-    if len(sys.argv) != 4:
-        print("use: day | start_station | csv trips | csv stations")
-        exit(-1)
-
-    '''    day = 1
-    station_num = 3183
-    trips_one_month = pd.read_csv('../RExtractor/output/JC-201904-citibike-tripdata.csv')
-    stations = pd.read_csv('../RExtractor/output/stationTable.csv')'''
-
-    day = int(sys.argv[1])
-    station_num = int(sys.argv[2])
-    trips_one_month = pd.read_csv(sys.argv[3])
-   # stations = sys.argv[4]
+@app.route('/flow')
+def get_image():
+    day = int(request.args.get('day'))
+    station_num = int(request.args.get('station_id'))
+    trips_one_month = pd.read_csv(request.args.get('data'))
 
     # Liste d'intervalles de 30 min sur une journée
     dts30 = [dt.strftime('%H:%M:%S.%f') for dt in
@@ -190,19 +193,22 @@ def main():
     xfmt = md.DateFormatter('%H:%M:%S')
     plt.rcParams['figure.figsize'] = [10, 5]
     plt.xticks(rotation=90, )
-    plt.plot(dts30, test)
+    plt.plot(dts30, test, color='blue')
     plt.plot(dts30, predictions, color='red')
     # plt.show()
 
     # serialize the image into bytearray png
     buf = io.BytesIO()
-    plt.savefig(buf, format='png')
+    plt.savefig('/home/temp.png')
+    #plt.savefig(buf, format='png')
     # convert the bytearray into a hexa string
     hexstring = ''.join(format(x, '02x') for x in buf.getvalue())
 
     # return the string to the micro service
-    print(hexstring)
+    #print(hexstring)
+
+    return send_file('/home/temp.png', mimetype='image/png')
 
 
 if __name__ == "__main__":
-    main()
+    app.run(debug=True,host='0.0.0.0')

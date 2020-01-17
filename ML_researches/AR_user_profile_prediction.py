@@ -1,5 +1,5 @@
-# -*- coding: utf-8 -*-
-
+#!/usr/bin/env python
+# -*- coding: utf-8 -*- 
 
 """
 Created on Wed Nov 27 14:58:34 2019
@@ -25,6 +25,15 @@ import pandas as pd
 import numpy as np
 import io
 import sys
+from flask import (
+    Flask,
+    render_template,
+    send_file,
+    request
+)
+
+# Create the application instance
+app = Flask(__name__, template_folder="templates")
 
 
 # Retourne les datasets où le départ ou l'arrivée est à une station donnée
@@ -34,19 +43,6 @@ def find_by_start_station_id(dataset, id_start_station):
 
 
 def extract_one_day(dfs, day, train):
-    """ method one : arbitrary train/test couples depending on the day (putting weekdays together
-    if train:
-        df_one_day = dfs[dfs.start_wday == day]
-    else:
-        if day == 0:
-            df_one_day = dfs[dfs.start_wday == day+1]
-        elif day == 5:
-            df_one_day = dfs[dfs.start_wday == 4]
-        elif day == 6:
-            df_one_day = dfs[dfs.start_wday == 0]
-        else:  # day in range(1,4)
-            df_one_day = dfs[dfs.start_wday == 6]
-    """
 
     # method 2
     if train:
@@ -157,31 +153,12 @@ def avg_user_per_halfhour(data, pred_type):
     return avg_data_per_halfhour_list
 
 
-def main():
-
-    if len(sys.argv) != 5:
-        print("autoregression algorithm should be called with 4 arguments")
-        print("use: day | start_station | csv trips(one month) | prediction type (0 for usertype)")
-        sys.exit(-1)
-
-    argday = int(sys.argv[1])
-    argstation_num = int(sys.argv[2])
-    argtrips_one_month = sys.argv[3]
-    # argstations = sys.argv[4]
-    argpredtype = int(sys.argv[4])
-    """
-
-    # tests
-    # lundi = 1
-    argday = 2
-    # id 3255 (8 Ave & W 31 St in NY)
-    # id 3183 (JC)
-    argstation_num = int(3183)
-    argtrips_one_month = '../RExtractor/output/JC-201811-citibike-tripdata.csv'
-    argpredtype = 0
-    # argstations = sys.argv[4]
-    """
-
+@app.route('/usertype')
+def get_image():
+    argday = int(request.args.get('day'))
+    argstation_num = int(request.args.get('station_id'))
+    argtrips_one_month = str(request.args.get('data'))
+    argpredtype = int(request.args.get('usertype'))
 
     # extraction from csv
     df = pd.read_csv(argtrips_one_month, sep=',', header=0)
@@ -266,18 +243,21 @@ def main():
     xfmt = md.DateFormatter('%H:%M:%S')
     plt.rcParams['figure.figsize'] = [10, 5]
     plt.xticks(rotation=90, )
-    plt.plot(test)
+    plt.plot(test,color='blue')
     plt.plot(predictions, color='red')
     #plt.show()
 
     # serialize the image into bytearray png
     buf = io.BytesIO()
-    plt.savefig(buf, format='png')
+    plt.savefig('/home/temp.png')
+    #plt.savefig(buf, format='png')
     # convert the bytearray into a hexa string
     hexstring = ''.join(format(x, '02x') for x in buf.getvalue())
 
     # return the string to the micro service
-    print(hexstring)
+    # print(hexstring)
+
+    return send_file('/home/temp.png', mimetype='image/png')
 
 if __name__ == "__main__":
-    main()
+    app.run(debug=True,host='0.0.0.0')
