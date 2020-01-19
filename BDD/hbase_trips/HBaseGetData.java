@@ -61,8 +61,9 @@ public class HBaseGetData {
 	        scan.setFilter(filterListGlobal); 
 	        */
 			
+			BinaryComparator binlimite = new BinaryComparator(Bytes.toBytes(this.month));
 	        Filter filter_month = new SingleColumnValueFilter(Bytes.toBytes(fam), Bytes.toBytes("start_month"),
-	                CompareFilter.CompareOp.EQUAL, Bytes.toBytes(this.month));
+	                CompareFilter.CompareOp.EQUAL, binlimite);
 	        scan.setFilter(filter_month); 
 
 			// get the scan result
