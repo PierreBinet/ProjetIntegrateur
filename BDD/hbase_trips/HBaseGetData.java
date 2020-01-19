@@ -40,6 +40,7 @@ public class HBaseGetData {
 	 		/* filter the station and the month */
 			String fam = "info";
 			
+			/*
 			// the station can be the start OR end station
 			Filter filter_start_station = new SingleColumnValueFilter(Bytes.toBytes(fam), Bytes.toBytes("start_station_id"),
 	                CompareFilter.CompareOp.EQUAL, Bytes.toBytes(this.station));
@@ -58,6 +59,11 @@ public class HBaseGetData {
 	        
 	        // add the filter to the scan
 	        scan.setFilter(filterListGlobal); 
+	        */
+			
+	        Filter filter_month = new SingleColumnValueFilter(Bytes.toBytes(fam), Bytes.toBytes("start_month"),
+	                CompareFilter.CompareOp.EQUAL, Bytes.toBytes(this.month));
+	        scan.setFilter(filter_month); 
 
 			// get the scan result
 			ResultScanner scanner = table.getScanner(scan);
@@ -69,6 +75,7 @@ public class HBaseGetData {
 
 			// write values from scan result, in csv file
 			for (Result result : scanner) {
+				System.out.println(" Result found");
 				Trip trip = new Trip(result);
 				trip.writeTripInFile(this.fw);
 
