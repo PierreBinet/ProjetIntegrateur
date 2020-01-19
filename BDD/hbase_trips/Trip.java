@@ -27,10 +27,6 @@ public class Trip {
 		this.start_station_id = Bytes.toString(result.getValue(this.rawfam, Bytes.toBytes("start_station_id")));
 		this.end_station_id = Bytes.toString(result.getValue(this.rawfam, Bytes.toBytes("end_station_id")));
 		this.bikeid = Bytes.toString(result.getValue(this.rawfam, Bytes.toBytes("bikeid")));
-		
-		System.out.println("print attributes\n");
-		System.out.println("trip duration :" + this.tripduration);
-		System.out.println("\nbikeid :" + this.bikeid);
 	}
 	
 	public Trip(String tripduration, String start_station_id, String end_station_id, String bikeid) {
@@ -42,27 +38,13 @@ public class Trip {
 	
 	public void writeTripInFile(FileWriter fw) {
 		try {
-			System.out.println("write in file");
-			fw.write("new row : ");
-			fw.write(this.tripduration + ";");
-			fw.write(this.start_station_id + ";");
-			fw.write(this.end_station_id + ";");
+			fw.write(this.tripduration + ",");
+			fw.write(this.start_station_id + ",");
+			fw.write(this.end_station_id + ",");
 			fw.write(this.bikeid + "\n");
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
 	}
-	
-	/*public void addInfo(Result result, String col){
-		byte[] octets = B
-		
-		//final byte[] rawfam = Bytes.toBytes(fam);
-		//final byte[] rawcol = Bytes.toBytes(col);
-		
-		// extraire la colonne (qualifier)
-		String col = Bytes.toString(cell.getQualifierArray(),cell.getQualifierOffset(), cell.getQualifierLength());
-		// extraire la valeur (PB si c'est pas un String)
-		String val = Bytes.toString(cell.getValueArray(),cell.getValueOffset(), cell.getValueLength());
-		System.out.println(col+" = "+val);
-	}*/
+
 }
