@@ -89,10 +89,4 @@ public class HBaseGetData {
 
 	}
 
-	public static void main(String[] args) throws IOException {
-		HBaseGetData hb = new HBaseGetData(11, 1);
-		hb.createCsv();
-	}
-
-
 }
