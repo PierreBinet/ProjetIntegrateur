@@ -67,7 +67,24 @@ public class Trip {
 			fw.write(this.tripduration + ",");
 			fw.write(this.start_station_id + ",");
 			fw.write(this.end_station_id + ",");
-			fw.write(this.bikeid + "\n");
+			fw.write(this.bikeid + ",");
+			fw.write(this.usertype + ",");
+			fw.write(this.birth_year + ",");
+			fw.write(this.gender + ",");
+			fw.write(this.start_day + ",");
+			fw.write(this.start_wday + ",");
+			fw.write(this.start_month + ",");
+			fw.write(this.start_year + ",");
+			fw.write(this.start_hour + ",");
+			fw.write(this.start_minute + ",");
+			fw.write(this.start_second + ",");
+			fw.write(this.end_day + ",");
+			fw.write(this.end_wday + ",");
+			fw.write(this.end_month + ",");
+			fw.write(this.end_year + ",");
+			fw.write(this.end_hour + ",");
+			fw.write(this.end_minute + ",");
+			fw.write(this.end_second + "\n");
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
