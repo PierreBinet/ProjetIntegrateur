@@ -5,7 +5,6 @@ import org.apache.hadoop.hbase.util.Bytes;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.hbase.*;
 import org.apache.hadoop.hbase.client.*;
-import org.apache.hadoop.hbase.util.*;
 import org.apache.hadoop.hbase.filter.*;
 
 import java.io.FileWriter;
@@ -30,26 +29,37 @@ public class HBaseGetData {
 	public void createCsv() {
 
 		try {
-			// Instantiating configuration class
-			Configuration config = HBaseConfiguration.create();
-
-			// Instantiating HTable class
+			
+			// instantiate the trips table
+			Configuration config = HBaseConfiguration.create();			
 			HTable table = new HTable(config, "trips");
 
-			// Instantiating the Scan class
+			// instantiate a scan
 			Scan scan = new Scan();
-			/*
- 		// filter
-			 
- 		BinaryComparator binlimite = new BinaryComparator(rawlimite);
- 		SingleColumnValueFilter filtre = new SingleColumnValueFilter(rawfam, rawcol, CompareOp.GREATER_OR_EQUAL, binlimite);
+			
+	 		/* filter the station and the month */
+			String fam = "info";
+			
+			// the station can be the start OR end station
+			Filter filter_start_station = new SingleColumnValueFilter(Bytes.toBytes(fam), Bytes.toBytes("start_station_id"),
+	                CompareFilter.CompareOp.EQUAL, Bytes.toBytes(this.station));
+	        Filter filter_end_station = new SingleColumnValueFilter(Bytes.toBytes(fam), Bytes.toBytes("end_station_id"),
+	                CompareFilter.CompareOp.EQUAL, Bytes.toBytes(this.station));
+	        FilterList filterListStation = new FilterList(FilterList.Operator.MUST_PASS_ONE);
+	        filterListStation.addFilter(filter_start_station);
+	        filterListStation.addFilter(filter_end_station);
+	        
+	        // station AND month
+	        Filter filter_month = new SingleColumnValueFilter(Bytes.toBytes(fam), Bytes.toBytes("start_month"),
+	                CompareFilter.CompareOp.EQUAL, Bytes.toBytes(this.month));
+	        FilterList filterListGlobal = new FilterList(FilterList.Operator.MUST_PASS_ALL);
+	        filterListGlobal.addFilter(filter_month);
+	        filterListGlobal.addFilter(filterListStation);
+	        
+	        // add the filter to the scan
+	        scan.setFilter(filterListGlobal); 
 
-		SingleColumnValueFilter filtre1 = ;
-		QualifierFilter filtre2 = ;
-		FilterList conjonction = new FilterList(FilterList.Operator.MUST_PASS_ALL, filtre1, filtre2);
-		scan.setFilter(conjonction); */
-
-			// Get the scan result
+			// get the scan result
 			ResultScanner scanner = table.getScanner(scan);
 
 			// write labels in csv file
@@ -57,7 +67,7 @@ public class HBaseGetData {
 
 			int count = 0;
 
-			// Read values from scan result
+			// write values from scan result, in csv file
 			for (Result result : scanner) {
 				Trip trip = new Trip(result);
 				trip.writeTripInFile(this.fw);
@@ -68,10 +78,10 @@ public class HBaseGetData {
 				}
 			}
 
+			// close
 			this.fw.close();
-
-			//close the scanner
 			scanner.close();
+			table.close();
 
 		} catch (IOException e) {
 			e.printStackTrace();
