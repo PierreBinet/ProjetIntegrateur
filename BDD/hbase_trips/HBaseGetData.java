@@ -40,49 +40,36 @@ public class HBaseGetData {
 	 		/* filter the station and the month */
 			String fam = "info";
 			
-			/*
 			// the station can be the start OR end station
 			Filter filter_start_station = new SingleColumnValueFilter(Bytes.toBytes(fam), Bytes.toBytes("start_station_id"),
-	                CompareFilter.CompareOp.EQUAL, Bytes.toBytes(this.station));
+	                CompareFilter.CompareOp.EQUAL, Bytes.toBytes(String.valueOf(this.station)));
 	        Filter filter_end_station = new SingleColumnValueFilter(Bytes.toBytes(fam), Bytes.toBytes("end_station_id"),
-	                CompareFilter.CompareOp.EQUAL, Bytes.toBytes(this.station));
+	                CompareFilter.CompareOp.EQUAL, Bytes.toBytes(String.valueOf(this.station)));
 	        FilterList filterListStation = new FilterList(FilterList.Operator.MUST_PASS_ONE);
 	        filterListStation.addFilter(filter_start_station);
 	        filterListStation.addFilter(filter_end_station);
 	        
 	        // station AND month
 	        Filter filter_month = new SingleColumnValueFilter(Bytes.toBytes(fam), Bytes.toBytes("start_month"),
-	                CompareFilter.CompareOp.EQUAL, Bytes.toBytes(this.month));
+	                CompareFilter.CompareOp.EQUAL, Bytes.toBytes(String.valueOf(this.month)));
 	        FilterList filterListGlobal = new FilterList(FilterList.Operator.MUST_PASS_ALL);
 	        filterListGlobal.addFilter(filter_month);
 	        filterListGlobal.addFilter(filterListStation);
 	        
 	        // add the filter to the scan
 	        scan.setFilter(filterListGlobal); 
-	        */
-			
-	        Filter filter_month = new SingleColumnValueFilter(Bytes.toBytes(fam), Bytes.toBytes("start_month"),
-	                CompareFilter.CompareOp.EQUAL, Bytes.toBytes(String.valueOf(this.month)));
-	        scan.setFilter(filter_month); 
-
+	        
 			// get the scan result
 			ResultScanner scanner = table.getScanner(scan);
 
 			// write labels in csv file
 			this.fw.write("\"tripduration\",\"start_station_id\",\"end_station_id\",\"bikeid\",\"usertype\",\"birth_year\",\"gender\",\"start_day\",\"start_wday\",\"start_month\",\"start_year\",\"start_hour\",\"start_minute\",\"start_second\",\"end_day\",\"end_wday\",\"end_month\",\"end_year\",\"end_hour\",\"end_minute\",\"end_second\"\n");
 
-			int count = 0;
-
 			// write values from scan result, in csv file
 			for (Result result : scanner) {
 				System.out.println(" Result found");
 				Trip trip = new Trip(result);
 				trip.writeTripInFile(this.fw);
-
-				count += 1;
-				if (count==10) {
-					break;
-				}
 			}
 
 			// close
