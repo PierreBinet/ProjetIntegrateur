@@ -39,7 +39,7 @@ public class RessourceManager {
 
 	public static String getFillRates( String day, String startStation, String tripsDatasetName, String stationsDatasetName) throws IOException {
 
-	    URL urlForGetRequest = new URL("http://localhost:8080/PredictionWS/insaRessources/prediction");
+	    URL urlForGetRequest = new URL("http://10.0.0.201:5000/PredictionWS/insaRessources/prediction");
 	    String readLine = null;
 	    HttpURLConnection conection = (HttpURLConnection) urlForGetRequest.openConnection();
 	    conection.setRequestMethod("GET");
@@ -66,7 +66,7 @@ public class RessourceManager {
 	
 	public  BufferedImage GETFluxRequest(int day, int station, String file) throws IOException {
 
-	    URL urlForGetRequest = new URL("http://localhost:8080/PredictionWS/insaRessources/prediction/flow?day="+day+"&station_id="+station+"&data="+file);
+	    URL urlForGetRequest = new URL("http://10.0.0.201:5000/PredictionWS/insaRessources/prediction/flow?day="+day+"&station_id="+station+"&data="+file);
 	    HttpURLConnection conection = (HttpURLConnection) urlForGetRequest.openConnection();
 	    conection.setRequestMethod("GET");
 	    int responseCode = conection.getResponseCode();
