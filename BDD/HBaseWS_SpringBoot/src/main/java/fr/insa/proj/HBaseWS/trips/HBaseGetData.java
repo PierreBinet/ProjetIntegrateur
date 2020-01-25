@@ -1,4 +1,4 @@
-package hbase_trips;
+package fr.insa.proj.HBaseWS.trips;
 
 import org.apache.hadoop.hbase.util.Bytes;
 
