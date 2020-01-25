@@ -40,7 +40,7 @@ public class HBaseGetData {
 	 		/* filter the station and the month */
 			String fam = "info";
 			
-			// the station can be the start OR end station
+			// filter start OR end station
 			Filter filter_start_station = new SingleColumnValueFilter(Bytes.toBytes(fam), Bytes.toBytes("start_station_id"),
 	                CompareFilter.CompareOp.EQUAL, Bytes.toBytes(String.valueOf(this.station)));
 	        Filter filter_end_station = new SingleColumnValueFilter(Bytes.toBytes(fam), Bytes.toBytes("end_station_id"),
@@ -49,7 +49,7 @@ public class HBaseGetData {
 	        filterListStation.addFilter(filter_start_station);
 	        filterListStation.addFilter(filter_end_station);
 	        
-	        // station AND month
+	        // filter station AND month
 	        Filter filter_month = new SingleColumnValueFilter(Bytes.toBytes(fam), Bytes.toBytes("start_month"),
 	                CompareFilter.CompareOp.EQUAL, Bytes.toBytes(String.valueOf(this.month)));
 	        FilterList filterListGlobal = new FilterList(FilterList.Operator.MUST_PASS_ALL);
@@ -67,7 +67,6 @@ public class HBaseGetData {
 
 			// write values from scan result, in csv file
 			for (Result result : scanner) {
-				System.out.println(" Result found");
 				Trip trip = new Trip(result);
 				trip.writeTripInFile(this.fw);
 			}
@@ -76,6 +75,9 @@ public class HBaseGetData {
 			this.fw.close();
 			scanner.close();
 			table.close();
+			
+			System.out.println("Trips from/to the station " + station + " in month " + month);
+			System.out.println(" written in file named trips.csv");
 
 		} catch (IOException e) {
 			e.printStackTrace();
